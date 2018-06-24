@@ -1,0 +1,15 @@
+
+xception while connecting: [Errno 111] Connect call failed ('127.0.0.1', 11214)
+exception while connecting: [Errno 111] Connect call failed ('127.0.0.1', 11214)
+WARNING: Unable to connect to any memcached servers
+Traceback (most recent call last):
+  File "b.py", line 78, in <module>
+    loop.run_until_complete(setup())
+  File "/usr/lib/python3.6/asyncio/base_events.py", line 468, in run_until_complete
+    return future.result()
+  File "b.py", line 16, in setup
+    await mc.set(b'longkeyexists012345678901234567890123456789',b'valislongaswellforthiskeyjustforfuntestingpurposes',noreply=True)
+  File "/home/ch/code/web/env/http/lib/python3.6/site-packages/mrasyncmc-0.1.0-py3.6-linux-x86_64.egg/mrasyncmc/client.py", line 103, in set
+  File "/home/ch/code/web/env/http/lib/python3.6/site-packages/mrasyncmc-0.1.0-py3.6-linux-x86_64.egg/mrasyncmc/client.py", line 92, in _store
+  File "/home/ch/code/web/env/http/lib/python3.6/site-packages/mrasyncmc-0.1.0-py3.6-linux-x86_64.egg/mrasyncmc/server.py", line 87, in get_connection
+IndexError: list index out of range

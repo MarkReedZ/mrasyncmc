@@ -1,0 +1,6 @@
+delme
+__pycache__
+*egg*
+baio.py
+*swp
+*.o

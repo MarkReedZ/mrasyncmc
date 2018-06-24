@@ -21,7 +21,7 @@ m1 = Extension(
 
 setup(
     name='mrasyncmc',
-    version="0.1.0",
+    version="1.0.0",
     description='Python asyncio memcached client',
     long_description='Asyncio based Python client for memcached',
     classifiers=[

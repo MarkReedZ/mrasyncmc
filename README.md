@@ -30,5 +30,6 @@ Benchmarking the rest
 
 # TODO
 
-The C memcached client embedded in [MrHTTP](https://github.com/MarkReedZ/mrhttp) gets almost 600,000 requests per second fetching session data from memcached so there is room for improvement.  If/when it is possible to await a C function we can just move everything to C.
+The C memcached client embedded in [MrHTTP](https://github.com/MarkReedZ/mrhttp) gets almost 600,000 requests per second fetching session data from memcached so there is room for improvement.  The connection reader in server.py can be moved to C and add the responses to the response queue from there.
+
 

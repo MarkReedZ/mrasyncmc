@@ -1,6 +1,34 @@
 # MrAsyncMC
 Python 3.5+ async Memcached client
 
+# Installation
+
+-  ``pip install mrasyncmc``
+
+# Usage
+
+```python
+
+import asyncio
+import mrasyncmc
+
+loop = asyncio.get_event_loop()
+
+async def runme():
+
+  c = await mrasyncmc.create_client([("localhost",11211)],pool_size=2)
+
+  print(await c.get(b"key-does-not-exist"))
+  await c.set(b'keyexists',b'foo')
+  print(await c.get(b"keyexists"))
+
+  await c.close()
+
+loop.run_until_complete(runme())
+
+```
+
+
 # Benchmarks
 
 ```

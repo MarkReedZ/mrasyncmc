@@ -2,8 +2,6 @@
 #include <Python.h>
 #include <stdbool.h>
 
-
-
 #if defined __SSE4_2__
 #ifdef _MSC_VER
 #include <nmmintrin.h>
@@ -90,9 +88,9 @@ void MemcachedClient_setup( MemcachedClient* self ) {
 static int has_char_in_range(const char *buf, int bufsz, const char *ranges, size_t ranges_size)
 {
     char *end = buf + bufsz;
+    __m128i ranges16 = _mm_loadu_si128((const __m128i *)ranges);
 #if __SSE4_2__
     if ( bufsz >= 16 ) {
-        __m128i ranges16 = _mm_loadu_si128((const __m128i *)ranges);
 
         size_t left = bufsz & ~15;
         do {
@@ -105,6 +103,21 @@ static int has_char_in_range(const char *buf, int bufsz, const char *ranges, siz
             left -= 16;
         } while (likely(left != 0));
     }
+
+    size_t left = end - buf;
+    if ( left != 0 ) {
+      static char sbuf[16] = {0};
+      memcpy( sbuf, buf, left );
+      __m128i b16 = _mm_loadu_si128((const __m128i *)sbuf);
+      int r = _mm_cmpestri(ranges16, ranges_size, b16, 16, _SIDD_LEAST_SIGNIFICANT | _SIDD_CMP_RANGES | _SIDD_UBYTE_OPS);
+      if (unlikely(r != 16) && r < left) {
+        return 1;
+      } else {
+        return 0;
+      }
+    }
+
+
 #else
     /* suppress unused parameter warning */
     (void)bufsz;

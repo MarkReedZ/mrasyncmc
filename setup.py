@@ -33,7 +33,7 @@ setup(
         ],
     url='https://github.com/MarkReedZ/mrasyncmc',
     author='Mark Reed',
-    author_email='mark@untilfluent.com',
+    author_email='markreed99@gmail.com',
     license='MIT License',
     ext_modules = [m1],
     package_dir={'':'src'},

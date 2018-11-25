@@ -5,20 +5,28 @@
 
 import asyncio
 import mrasyncmc
+import aiomcache
 import time
 
 loop = asyncio.get_event_loop()
 
 mc = None
 async def setup():
-  global mc
-  mc = await mrasyncmc.create_client([("localhost",11211),("localhost",11212),("localhost",11213),("localhost",11214)],pool_size=8)
+  global mc, aiomc
+  aiomc = aiomcache.Client("127.0.0.1", 11211, loop=loop)
+  #mc = await mrasyncmc.create_client([("localhost",11211),("localhost",11212),("localhost",11213),("localhost",11214)],pool_size=8)
+  mc = await mrasyncmc.create_client([("localhost",11211),("localhost",11212)],pool_size=8)
   await mc.set(b'longkeyexists012345678901234567890123456789',b'valislongaswellforthiskeyjustforfuntestingpurposes',noreply=True)
   await mc.set(b'keyexists',b'val',noreply=True)
   await mc.set(b'incrtest',b'1',noreply=True)
   await mc.set(b'decrtest',b'1000000',noreply=True)
+  await aiomc.set(b'longkeyexists012345678901234567890123456789',b'valislongaswellforthiskeyjustforfuntestingpurposes')
+  await aiomc.set(b'keyexists',b'val')
+  await aiomc.set(b'incrtest',b'1')
+  await aiomc.set(b'decrtest',b'1000000')
   for x in range(1000):
     v = await mc.get(b"keyexists")
+    v = await aiomc.get(b"keyexists")
 
 async def bench():
 
@@ -51,11 +59,20 @@ async def bench():
   print("\nBenchmarking set\n")
   for k in [b"keyexists",b"keydoesnotexist",b"longkeyexists012345678901234567890123456789",b"longkeydoesnotexists012345678901234567890123456789"]:
     await tim(mc.set, k, b"val", noreply=True)
-  print("\nBenchmarking the rest\n")
-  for k in [b"incr_test"]:
-    await timget(mc.incr, k)
-  for k in [b"decr_test"]:
-    await timget(mc.decr, k)
+  #print("\nBenchmarking the rest\n")
+  #for k in [b"incr_test"]:
+    #await timget(mc.incr, k)
+  #for k in [b"decr_test"]:
+    #await timget(mc.decr, k)
+
+  if 0:
+    print("\nBenchmarking get\n")
+    for k in [b"keyexists",b"keydoesnotexist",b"longkeyexists012345678901234567890123456789",b"longkeydoesnotexists012345678901234567890123456789"]:
+      await timget(aiomc.get, k)
+    print("\nBenchmarking set\n")
+    for k in [b"keyexists",b"keydoesnotexist",b"longkeyexists012345678901234567890123456789",b"longkeydoesnotexists012345678901234567890123456789"]:
+      await tim(aiomc.set, k, b"val")
+
 
   print("")
   print("")

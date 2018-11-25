@@ -1,5 +1,5 @@
 # MrAsyncMC
-Python 3.5+ async Memcached client
+Python 3.5+ async Memcached client that is 3-10x faster than aiomcache
 
 # Installation
 
@@ -53,11 +53,5 @@ Benchmarking the rest
 45,844  Requests/second  b'incr_test'
 45,921  Requests/second  b'decr_test'
 
-
 ```
-
-# TODO
-
-The C memcached client embedded in [MrHTTP](https://github.com/MarkReedZ/mrhttp) gets almost 600,000 requests per second fetching session data from memcached so there is room for improvement.  The connection reader in server.py can be moved to C and add the responses to the response queue from there.
-
 

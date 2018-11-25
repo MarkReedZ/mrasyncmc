@@ -110,12 +110,25 @@ class Client(CMemcachedClient):
   async def add(self, key, val, exp=0, flags=0,noreply=True):
     return await self._store(b"add", key, val, exp, flags, noreply)
 
-  async def delete(self, key):
+  async def delete(self, key, noreply=True):
     s = self.get_server_index_and_validate(key)
     c = self.servers[ s ].get_connection()
+    if noreply:
+        c.w.write(b'delete ' + key + b' noreply\r\n')
+        return True
     c.w.write(b'delete ' + key + b'\r\n')
     resp = await c.respq.get()
     return resp == b'DELETED'
+
+  async def touch(self, key, exp, noreply=True):
+    s = self.get_server_index_and_validate(key)
+    c = self.servers[ s ].get_connection()
+    if noreply:
+      c.w.write(b'touch ' + key + b' ' + str(exp).encode('utf-8') + b' noreply\r\n')
+      return True
+    c.w.write(b'touch ' + key + b' ' + str(exp).encode('utf-8') + b'\r\n')
+    resp = await c.respq.get()
+    return resp == b'TOUCHED'
 
   async def incr(self, key, increment=1):
     # Returns the incremented value or None if the key wasn't found

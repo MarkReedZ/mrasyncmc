@@ -8,9 +8,12 @@ from .server import Server
 async def create_client( servers, pool_size=2, loop=None, connection_timeout=1 ):
   loop = loop if loop is not None else asyncio.get_event_loop()
   c = Client(servers, pool_size, loop, connection_timeout)
-  num = await c.setup_connections()
+  try:
+    num = await c.setup_connections()
+  except:
+    pass
   if num == 0:
-    print("WARNING: Unable to connect to any memcached servers")
+    raise ConnectionError("Unable to connect to any memcached servers")
   return c
   
   
@@ -23,7 +26,9 @@ class Client(CMemcachedClient):
 
     self.servers = []
     for s in servers:
-      self.servers.append( Server( s[0], s[1], pool_size, loop, connection_timeout ) ) 
+      self.servers.append( Server( self, s[0], s[1], pool_size, loop, connection_timeout ) ) 
+
+    self.num_healthy = len(servers)
 
     super().__init__(len(servers))
 
@@ -40,19 +45,40 @@ class Client(CMemcachedClient):
     for s in self.servers:
       await s.close()
 
+  def lost_server(self, srv):
+    self.num_healthy -= 1
+    
+  def server_back(self, srv):
+    self.num_healthy += 1
+
+  def get_connection(self, s):
+    if self.num_healthy == 0: 
+      raise ConnectionError("We lost connection to all servers")
+    orig = s
+    c = self.servers[ s ].get_connection()
+    while c == None:
+      s = (s+1)%len(self.servers)
+      if s == orig:
+        raise ConnectionError("We lost connection to all servers orig TODO")
+      c = self.servers[ s ].get_connection()
+    return c
+
   async def get(self, key, default=None):
-    server_index = self.get_server_index_and_validate(key)
-    c = self.servers[ server_index ].get_connection()
+    
+    s = self.get_server_index_and_validate(key)
+    #c = self.servers[ s ].get_connection()
+    c = self.get_connection(s)
     c.w.write(b'get '  + key + b'\r\n')
     r = await c.respq.get()
+    #r = await c.waitForRead()
     try:
       return r[key][0]
     except:
       return None
 
   async def gets(self, key, default=None):
-    server_index = self.get_server_index_and_validate(key)
-    c = self.servers[ server_index ].get_connection()
+    s = self.get_server_index_and_validate(key)
+    c = self.servers[ s ].get_connection()
     c.w.write(b'gets '  + key + b'\r\n')
     r = await c.respq.get()
     try:
@@ -76,20 +102,22 @@ class Client(CMemcachedClient):
       c = self.servers[ srv ].get_connection()
       c.w.write(b'get '  + b' '.join(keys) + b'\r\n')
       futs.append( c.respq.get() )
- 
-    d = {}
+
     results = await asyncio.gather(*futs)
+    if results == None: return None
+    d = {}
     for r in results:
+      if r == None: continue
       for k in r.keys():
         d[k] = r[k][0]
   
     return d
 
   async def _store(self, cmd, key, val, exp=0, flags=0, noreply=True):
-    server_index = self.get_server_index_and_validate(key)
+    s = self.get_server_index_and_validate(key)
     if not isinstance(exp,int):
       raise ValueError("Expiration must be an int")
-    c = self.servers[ server_index ].get_connection()
+    c = self.servers[ s ].get_connection()
     args = [str(a).encode('utf-8') for a in (flags, exp, len(val))]
     cmd = cmd + b' ' + b' '.join([key] + args)
     if noreply: cmd += b' noreply'

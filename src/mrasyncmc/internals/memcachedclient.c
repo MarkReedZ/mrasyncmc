@@ -1,4 +1,5 @@
 
+
 #include <Python.h>
 #include <stdbool.h>
 
@@ -18,24 +19,8 @@
 #define MAX_SERVERS 8192
 static int srvmap[MAX_SERVERS];
 
-static char hexchar[256] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
-                             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
-                             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
-                             0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 0, 0, 0, 0, 0, 
-                             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
-                             0,10,11,12,13,14,15, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
-                             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
-                             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
-                             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
-                             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
-                             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
-                             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
-                             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
-                             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
-                             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
-                             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-
 PyObject *MemcachedClient_new(PyTypeObject* type, PyObject *args, PyObject *kwargs) {
+  printf("DELME new\n");
   MemcachedClient* self = NULL;
   self = (MemcachedClient*)type->tp_alloc(type, 0);
   return (PyObject*)self;
@@ -43,31 +28,34 @@ PyObject *MemcachedClient_new(PyTypeObject* type, PyObject *args, PyObject *kwar
 
 
 void MemcachedClient_dealloc(MemcachedClient* self) {
+  printf("DELME dealloc\n");
 }
 
 int MemcachedClient_init(MemcachedClient* self, PyObject *args, PyObject *kwargs) {
+  printf("DELME init\n");
   if(!PyArg_ParseTuple(args, "i", &self->num_servers)) return 1;
   MemcachedClient_setup(self); 
   return 0;
 }
 
 PyObject *MemcachedClient_cinit(MemcachedClient* self) {
+  printf("DELME cinit\n");
   Py_RETURN_NONE;
 }
 
 void MemcachedClient_setup( MemcachedClient* self ) {
+  printf("DELME setup %d\n",self->num_servers);
   if ( self->num_servers == 0 ) return;
 
   int seg = MAX_SERVERS / self->num_servers;
-  int i = 0;
-  int off = 0;
-  for ( ; i < self->num_servers-1; i++ ) {
-    for (int j = 0; j < seg; j++ ) {
-      srvmap[off++] = i; 
-    }
+  for ( int i=0; i < MAX_SERVERS; i++ ) {
+    int s = i/seg;
+    //while ( self->servers[s]->reconnecting ) { s = (s+1) % self->num_servers; }
+    srvmap[i] = s;
   }
-  while ( off < MAX_SERVERS ) srvmap[off++] = i;
 
+  
+  printf("DELME setup done\n");
 }
 
 #if __GNUC__ >= 3
@@ -87,6 +75,7 @@ void MemcachedClient_setup( MemcachedClient* self ) {
 
 static int has_char_in_range(const char *buf, int bufsz, const char *ranges, size_t ranges_size)
 {
+  printf("DELME WTF\n");
     char *end = buf + bufsz;
     __m128i ranges16 = _mm_loadu_si128((const __m128i *)ranges);
 #if __SSE4_2__
@@ -136,6 +125,7 @@ static int has_char_in_range(const char *buf, int bufsz, const char *ranges, siz
 
 // Length is 1 < k < 250 and chars are 0x21 < c < 0x7E
 PyObject *MemcachedClient_get_server_index_and_validate( MemcachedClient *self, PyObject *key ) {
+  printf("DELME WTF\n");
   char *k;
   Py_ssize_t ksz;
   if ( -1 == PyBytes_AsStringAndSize( key, &k, &ksz ) ) return NULL;
@@ -151,6 +141,6 @@ PyObject *MemcachedClient_get_server_index_and_validate( MemcachedClient *self, 
   }
 
   unsigned long hv = CityHash64(k, ksz);
-  return PyLong_FromUnsignedLong( srvmap[hv & 0xFFF]);
+  return PyLong_FromUnsignedLong( srvmap[hv & 0x1FFF]);
 }
 

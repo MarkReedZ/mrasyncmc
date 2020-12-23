@@ -1,8 +1,8 @@
 
-memcached -l 127.0.0.1 -p 11211 -d -m 50
-memcached -l 127.0.0.1 -p 11212 -d -m 50
-memcached -l 127.0.0.1 -p 11213 -d -m 50
-memcached -l 127.0.0.1 -p 11214 -d -m 50
+memcached -l 127.0.0.1 -p 11211 -m 50
+memcached -l 127.0.0.1 -p 11212 -m 50
+memcached -l 127.0.0.1 -p 11213 -m 50
+memcached -l 127.0.0.1 -p 11214 -m 50
 
 kill `ps aux | grep "memcached -l" | grep -v grep | awk '{print $2}'`
 
@@ -11,4 +11,17 @@ Setup tests
 Moving to C:
   With mrhttp this gets 90k rps vs mrhttp's C session client that accesses memcached at almost 600k rps
   Until asyncio C support we'll use a C protocol and push responses onto an async queue.
+
+
+memcached locking slows things down with get/set workloads
+https://thenewstack.io/dense-memcached-non-volatile-memory/
+
+
+python3 -m pipenv install
+python3 -m pytest 
+
+CFLAGS='-Wall -O0 -g -fsanitize=address -fno-omit-frame-pointer -fsanitize-recover=address' python setup.py install --force
+ASAN_OPTIONS=halt_on_error=0 LD_PRELOAD=/usr/lib/gcc/x86_64-linux-gnu/7/libasan.so python tst.py
+CFLAGS='-Wall -O0 -g -fsanitize=address -fno-omit-frame-pointer -fsanitize-recover=address' sudo python3.8-dbg setup.py install --force
+ASAN_OPTIONS=halt_on_error=0 LD_PRELOAD=/usr/lib/gcc/x86_64-linux-gnu/7/libasan.so python3.8-dbg tst.py
 

@@ -4,3 +4,5 @@ __pycache__
 baio.py
 *swp
 *.o
+build
+core

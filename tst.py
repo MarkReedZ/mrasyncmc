@@ -1,15 +1,72 @@
 
 import asyncio, time
 import mrasyncmc
+import tracemalloc
+tracemalloc.start()
+
 
 async def run(loop):
 
-  #c = mrasyncmc.Client([("localhost",11211),("localhost",11212),("localhost",11213),("localhost",11214)])
-  c = await mrasyncmc.create_client([("localhost",11211)],pool_size=2)
+  #try:
+  print("before")
+  c = await mrasyncmc.create_client([("localhost",11211),("localhost",11212)],pool_size=1)
+  #except ConnectionError as e:
+    #print("Failed to connect:", e)
+    #return
+  #c = await mrasyncmc.create_client([("localhost",11211)],pool_size=2)
+  print("FDAS")
+  return
 
-  print(await c.get(b"mrsession4af8e257df96441998ee6088024a592b"))
-  #print(await c.stats(0))
-  #print("")
+  x = b'a' * 100
+  await c.set(b"test",x)
+  print(await c.get(b"test"))
+  print(await c.get(b"keyexists"))
+
+  if 1:
+    await c.set(b"test1",b"tets1")
+    await c.set(b"test2",b"tets2")
+    await c.set(b"test3",b"tets3")
+    await c.set(b"test4",b"tets4")
+    await c.set(b"test5",b"tets5")
+    await c.set(b"test6",b"tets6")
+    await c.set(b"test7",b"tets7")
+    await c.set(b"test8",b"tets8")
+    await c.set(b"test9",b"tets9")
+    await c.set(b"test10",b"tets10")
+    await c.set(b"test11",b"tets11")
+  
+    while 1:
+      print("top")
+      futs = []
+      #print(await rc.get(b"test1"))
+      futs.append( c.get(b"test1") )
+      futs.append( c.get(b"test2") )
+      futs.append( c.get(b"test3") )
+      futs.append( c.get(b"test4") )
+      futs.append( c.get(b"test5") )
+      futs.append( c.get(b"test6") )
+      futs.append( c.get(b"test7") )
+      futs.append( c.get(b"test8") )
+      futs.append( c.get(b"test9") )
+      futs.append( c.get(b"test10") )
+  
+      try:
+        ret = await asyncio.gather(*futs)
+      except Exception as e:
+        print(" Connection failed waiting 5: ",e)
+        await asyncio.sleep(5)
+        continue
+      futs = []
+      for v in ret:
+        print(v)
+      await asyncio.sleep(5)
+  
+
+
+
+  await c.close()
+  print("YAY")
+  return
   await c.set(b"keyexists",b'bal')
   await c.set(b"test",b'bal')
   await c.set(b"test2",b'bal')

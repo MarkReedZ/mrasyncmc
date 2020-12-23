@@ -1,4 +1,6 @@
 
+pause and resume writing on protocol
+
 xception while connecting: [Errno 111] Connect call failed ('127.0.0.1', 11214)
 exception while connecting: [Errno 111] Connect call failed ('127.0.0.1', 11214)
 WARNING: Unable to connect to any memcached servers
